@@ -80,7 +80,7 @@ _pins_locales_from_keys (gchar **keys)
 gboolean
 _pins_key_has_locales (gchar **all_keys, const gchar *key)
 {
-    g_auto (PinsSplitKey) split, current;
+    g_auto (PinsSplitKey) split = { 0 }, current = { 0 };
 
     split = _pins_split_key_locale (key);
 

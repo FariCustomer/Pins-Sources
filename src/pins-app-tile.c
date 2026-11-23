@@ -32,6 +32,7 @@ struct _PinsAppTile
     PinsAppIcon *icon;
     AdwBin *invisible_glyph;
     GtkLabel *title;
+    GtkLabel *origin;
 };
 
 G_DEFINE_TYPE (PinsAppTile, pins_app_tile, GTK_TYPE_BOX);
@@ -56,6 +57,9 @@ pins_app_tile_update_appearance (PinsAppTile *self,
 
     gtk_label_set_text (
         self->title, pins_desktop_file_get_string (desktop_file, title_key));
+    gtk_label_set_text (self->origin,
+                        pins_app_origin_get_label (pins_desktop_file_get_origin (desktop_file)));
+    gtk_widget_set_tooltip_text (GTK_WIDGET (self->origin), gtk_label_get_text (self->origin));
 
     invisible = !pins_desktop_file_is_shown (desktop_file);
 
@@ -113,6 +117,7 @@ pins_app_tile_class_init (PinsAppTileClass *klass)
     gtk_widget_class_bind_template_child (widget_class, PinsAppTile,
                                           invisible_glyph);
     gtk_widget_class_bind_template_child (widget_class, PinsAppTile, title);
+    gtk_widget_class_bind_template_child (widget_class, PinsAppTile, origin);
 }
 
 static GdkContentProvider *

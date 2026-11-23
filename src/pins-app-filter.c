@@ -29,6 +29,8 @@ struct _PinsAppFilter
 
     gboolean show_all_apps;
     PinsAppFilterCategory category;
+    PinsAppOrigin origin;
+    gboolean group_by_origin;
 
     GtkCustomFilter *category_filter;
     GtkStringFilter *search_filter;
@@ -48,6 +50,8 @@ enum
     PROP_0,
     PROP_SHOW_ALL_APPS,
     PROP_CATEGORY,
+    PROP_ORIGIN,
+    PROP_GROUP_BY_ORIGIN,
     N_PROPS,
 };
 
@@ -95,6 +99,10 @@ category_match_func (gpointer desktop_file, gpointer user_data)
     PinsAppFilter *self = PINS_APP_FILTER (user_data);
     PinsDesktopFile *file = PINS_DESKTOP_FILE (desktop_file);
 
+    if (self->origin != PINS_APP_ORIGIN_ALL
+        && pins_desktop_file_get_origin (file) != self->origin)
+        return FALSE;
+
     switch (self->category)
         {
         case PINS_APP_FILTER_CATEGORY_ALL:
@@ -120,12 +128,20 @@ category_match_func (gpointer desktop_file, gpointer user_data)
 int
 sort_compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
 {
+    PinsAppFilter *self = PINS_APP_FILTER (user_data);
     PinsDesktopFile *first = PINS_DESKTOP_FILE ((gpointer)a);
     PinsDesktopFile *second = PINS_DESKTOP_FILE ((gpointer)b);
     const gchar *first_key, *second_key, *first_name, *second_name;
 
     g_return_val_if_fail (PINS_IS_DESKTOP_FILE (first), 0);
     g_return_val_if_fail (PINS_IS_DESKTOP_FILE (second), 0);
+
+    if (self->group_by_origin) {
+        PinsAppOrigin first_origin = pins_desktop_file_get_origin (first);
+        PinsAppOrigin second_origin = pins_desktop_file_get_origin (second);
+        if (first_origin != second_origin)
+            return first_origin < second_origin ? -1 : 1;
+    }
 
     first_key = _pins_join_key_locale (
         G_KEY_FILE_DESKTOP_KEY_NAME, pins_desktop_file_get_locale_for_key (
@@ -137,8 +153,14 @@ sort_compare_func (gconstpointer a, gconstpointer b, gpointer user_data)
                                          second, G_KEY_FILE_DESKTOP_KEY_NAME));
     second_name = pins_desktop_file_get_string (second, second_key);
 
-    /// TODO: Use UTF8 compare
-    return g_strcmp0 (first_name, second_name);
+    return g_utf8_collate (first_name ? first_name : "", second_name ? second_name : "");
+}
+
+static void
+origin_sort_notify_cb (PinsAppFilter *self, GParamSpec *pspec)
+{
+    gtk_sorter_changed (gtk_sort_list_model_get_sorter (self->sort_model),
+                        GTK_SORTER_CHANGE_DIFFERENT);
 }
 
 static void
@@ -151,6 +173,7 @@ pins_app_filter_dispose (GObject *object)
     g_clear_object (&self->sort_model);
     g_clear_object (&self->category_model);
     g_clear_object (&self->search_model);
+    G_OBJECT_CLASS (pins_app_filter_parent_class)->dispose (object);
 }
 
 static void
@@ -166,6 +189,12 @@ pins_app_filter_get_property (GObject *object, guint prop_id, GValue *value,
             break;
         case PROP_CATEGORY:
             g_value_set_uint (value, self->category);
+            break;
+        case PROP_ORIGIN:
+            g_value_set_uint (value, self->origin);
+            break;
+        case PROP_GROUP_BY_ORIGIN:
+            g_value_set_boolean (value, self->group_by_origin);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -186,6 +215,12 @@ pins_app_filter_set_property (GObject *object, guint prop_id,
             break;
         case PROP_CATEGORY:
             self->category = g_value_get_uint (value);
+            break;
+        case PROP_ORIGIN:
+            self->origin = g_value_get_uint (value);
+            break;
+        case PROP_GROUP_BY_ORIGIN:
+            self->group_by_origin = g_value_get_boolean (value);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -212,6 +247,13 @@ pins_app_filter_class_init (PinsAppFilterClass *klass)
         PINS_APP_FILTER_CATEGORY_VISIBLE,
         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
 
+    properties[PROP_ORIGIN] = g_param_spec_uint (
+        "origin", "Origin", "Application source", PINS_APP_ORIGIN_ALL,
+        PINS_APP_ORIGIN_COUNT - 1, PINS_APP_ORIGIN_ALL,
+        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    properties[PROP_GROUP_BY_ORIGIN] = g_param_spec_boolean (
+        "group-by-origin", "Group by origin", "Sort by source, then name", FALSE,
+        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
     g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
@@ -226,13 +268,13 @@ pins_app_filter_init (PinsAppFilter *self)
 
     self->sort_model = gtk_sort_list_model_new (
         NULL,
-        GTK_SORTER (gtk_custom_sorter_new (&sort_compare_func, NULL, NULL)));
+        GTK_SORTER (gtk_custom_sorter_new (&sort_compare_func, self, NULL)));
 
     self->category_model = gtk_filter_list_model_new (
-        G_LIST_MODEL (self->sort_model), GTK_FILTER (self->category_filter));
+        G_LIST_MODEL (g_object_ref (self->sort_model)), GTK_FILTER (g_object_ref (self->category_filter)));
 
     self->search_model = gtk_filter_list_model_new (
-        G_LIST_MODEL (self->category_model), GTK_FILTER (self->search_filter));
+        G_LIST_MODEL (g_object_ref (self->category_model)), GTK_FILTER (g_object_ref (self->search_filter)));
 
     g_signal_connect_object (self->search_model, "items-changed",
                              G_CALLBACK (g_list_model_items_changed), self,
@@ -242,6 +284,10 @@ pins_app_filter_init (PinsAppFilter *self)
                              G_CALLBACK (category_notify_cb), self, 0);
     g_signal_connect_object (self, "notify::category",
                              G_CALLBACK (category_notify_cb), self, 0);
+    g_signal_connect_object (self, "notify::origin",
+                             G_CALLBACK (category_notify_cb), self, 0);
+    g_signal_connect_object (self, "notify::group-by-origin",
+                             G_CALLBACK (origin_sort_notify_cb), self, 0);
 }
 
 gpointer

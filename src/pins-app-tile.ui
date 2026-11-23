@@ -41,5 +41,12 @@
         <property name="max-width-chars">12</property>
       </object>
     </child>
+    <child>
+      <object class="GtkLabel" id="origin">
+        <property name="ellipsize">end</property>
+        <property name="max-width-chars">16</property>
+        <style><class name="caption"/><class name="dim-label"/></style>
+      </object>
+    </child>
   </template>
 </interface>

@@ -161,6 +161,22 @@ pins_desktop_file_is_user_only (PinsDesktopFile *self)
     return self->system_file == NULL;
 }
 
+PinsAppOrigin
+pins_desktop_file_get_origin (PinsDesktopFile *self)
+{
+    /* A local override does not change where the application came from.
+     * Do not call get_user_file(): that method saves the launcher. */
+    g_autofree gchar *path = g_file_get_path (self->system_file
+                                               ? self->system_file : self->user_file);
+    PinsAppOrigin origin = pins_app_origin_detect (self->key_file, path);
+    if (self->system_file && origin >= PINS_APP_ORIGIN_SYSTEM) {
+        PinsAppOrigin original = pins_app_origin_detect (self->backup_key_file, path);
+        if (original > PINS_APP_ORIGIN_ALL && original < PINS_APP_ORIGIN_SYSTEM)
+            return original;
+    }
+    return origin;
+}
+
 gboolean
 pins_desktop_file_is_user_edited (PinsDesktopFile *self)
 {
@@ -311,8 +327,10 @@ pins_desktop_file_dispose (GObject *object)
     g_clear_object (&self->user_file);
     g_clear_object (&self->system_file);
     g_clear_object (&self->autostart_file);
-    g_clear_object (&self->key_file);
-    g_clear_object (&self->backup_key_file);
+    g_clear_pointer (&self->key_file, g_key_file_unref);
+    g_clear_pointer (&self->backup_key_file, g_key_file_unref);
+    g_clear_pointer (&self->saved_data, g_free);
+    G_OBJECT_CLASS (pins_desktop_file_parent_class)->dispose (object);
 }
 
 static void

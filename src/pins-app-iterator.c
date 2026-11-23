@@ -69,12 +69,8 @@ pins_app_iterator_key_set_cb (PinsAppIterator *self, gchar *key,
 
     // TODO: Even when it emits items-changed on every key-set event, the
     // filter list models of PinsAppFilter do not update immediately.
-    if (!g_strcmp0 (_pins_split_key_locale (key).key,
-                    G_KEY_FILE_DESKTOP_KEY_NAME))
+    if (g_ptr_array_find (self->desktop_files_array, desktop_file, &position))
         {
-            g_ptr_array_find (self->desktop_files_array, desktop_file,
-                              &position);
-
             g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 1);
         }
 }

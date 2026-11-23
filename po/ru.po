@@ -270,3 +270,33 @@ msgstr "(Без локализации)"
 
 #~ msgid "Load icon"
 #~ msgstr "Загрузить иконку"
+
+msgid "All sources"
+msgstr "Все источники"
+
+msgid "System packages"
+msgstr "Системные пакеты"
+
+msgid "User shortcuts"
+msgstr "Пользовательские ярлыки"
+
+msgid "Other sources"
+msgstr "Другие источники"
+
+msgid "Source"
+msgstr "Источник"
+
+msgid "Source, then name"
+msgstr "По источнику и имени"
+
+msgid "Unedited"
+msgstr "Без изменений"
+
+msgid "Applications: %u"
+msgstr "Приложений: %u"
+
+msgid "Filter by application source"
+msgstr "Фильтр по источнику приложения"
+
+msgid "Sort applications"
+msgstr "Сортировка приложений"

@@ -109,7 +109,7 @@ void
 pins_file_view_focus_key_row (PinsFileView *self, gchar *key)
 {
     GtkListBoxRow *row;
-    g_auto (PinsSplitKey) split, current;
+    g_auto (PinsSplitKey) split = { 0 }, current = { 0 };
 
     split = _pins_split_key_locale (key);
     key = split.key;

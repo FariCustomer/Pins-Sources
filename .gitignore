@@ -5,6 +5,8 @@
 
 # Test files
 test*
+!tests/
+!tests/**
 mocks/
 *.ipynb
 *.desktop
@@ -24,3 +26,9 @@ repo/
 .vscode/
 .idea/
 .zed/
+
+/build-local/
+/build/
+/build-meson/
+/qa/
+__pycache__/

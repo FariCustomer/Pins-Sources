@@ -22,6 +22,7 @@
 
 #include <gio/gio.h>
 #include <glib/gi18n.h>
+#include "pins-app-origin.h"
 
 G_BEGIN_DECLS
 
@@ -46,6 +47,7 @@ gboolean pins_desktop_file_is_user_only (PinsDesktopFile *self);
 gboolean pins_desktop_file_is_user_edited (PinsDesktopFile *self);
 gboolean pins_desktop_file_is_autostart (PinsDesktopFile *self);
 gboolean pins_desktop_file_is_shown (PinsDesktopFile *self);
+PinsAppOrigin pins_desktop_file_get_origin (PinsDesktopFile *self);
 
 void pins_desktop_file_save (PinsDesktopFile *self, GError **error,
                              gboolean remove_unedited_user_files);

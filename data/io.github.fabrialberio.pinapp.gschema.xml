@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="pinapp">
-  <schema id="io.github.fabrialberio.pinapp" path="/io/github/fabrialberio/pinapp/">
+  <schema id="io.github.mechamorf.PinsSources" path="/io/github/mechamorf/PinsSources/">
     <key name="show-all-apps" type="b">
       <default>false</default>
       <summary>Show all apps</summary>
+    </key>
+    <key name="origin-filter" type="u">
+      <range min="0" max="9"/>
+      <default>0</default>
+      <summary>Application source filter</summary>
+    </key>
+    <key name="group-by-origin" type="b">
+      <default>false</default>
+      <summary>Sort by application source</summary>
     </key>
     <key name="search-paths" type="as">
       <default>[

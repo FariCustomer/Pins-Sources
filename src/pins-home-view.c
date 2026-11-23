@@ -42,6 +42,9 @@ struct _PinsHomeView
     GtkToggleButton *autostart_search_chip;
     AdwViewStack *view_stack;
     PinsAppGrid *app_grid;
+    GtkDropDown *origin_dropdown;
+    GtkDropDown *sort_dropdown;
+    GtkLabel *results_label;
 };
 
 G_DEFINE_TYPE (PinsHomeView, pins_home_view, ADW_TYPE_BIN);
@@ -148,6 +151,9 @@ pins_home_view_class_init (PinsHomeViewClass *klass)
                                           view_stack);
     gtk_widget_class_bind_template_child (widget_class, PinsHomeView,
                                           app_grid);
+    gtk_widget_class_bind_template_child (widget_class, PinsHomeView, origin_dropdown);
+    gtk_widget_class_bind_template_child (widget_class, PinsHomeView, sort_dropdown);
+    gtk_widget_class_bind_template_child (widget_class, PinsHomeView, results_label);
 }
 
 gboolean
@@ -190,6 +196,10 @@ pins_home_view_items_changed_cb (GListModel *list, guint position,
 {
     g_assert (PINS_IS_HOME_VIEW (self));
 
+    g_autofree gchar *count = g_strdup_printf (_("Applications: %u"),
+        g_list_model_get_n_items (G_LIST_MODEL (self->app_filter)));
+    gtk_label_set_text (self->results_label, count);
+
     if (g_list_model_get_n_items (G_LIST_MODEL (self->app_filter)) == 0)
         adw_view_stack_set_visible_child_name (self->view_stack,
                                                pages[PAGE_EMPTY]);
@@ -230,13 +240,20 @@ pins_home_view_item_activated_cb (GtkListView *self, guint position,
 }
 
 static void
+sort_dropdown_changed_cb (GtkDropDown *dropdown, GParamSpec *pspec, PinsHomeView *self)
+{
+    g_object_set (self->app_filter, "group-by-origin",
+                  gtk_drop_down_get_selected (dropdown) == 1, NULL);
+}
+
+static void
 pins_home_view_init (PinsHomeView *self)
 {
     g_autoptr (GSettings) settings = NULL;
     g_autoptr (GSimpleActionGroup) group = NULL;
     g_autoptr (GAction) action = NULL;
 
-    settings = g_settings_new ("io.github.fabrialberio.pinapp");
+    settings = g_settings_new ("io.github.mechamorf.PinsSources");
     group = g_simple_action_group_new ();
     action = g_settings_create_action (settings, "show-all-apps");
 
@@ -247,6 +264,25 @@ pins_home_view_init (PinsHomeView *self)
     gtk_widget_init_template (GTK_WIDGET (self));
 
     self->app_filter = pins_app_filter_new ();
+
+    g_autoptr (GtkStringList) origins = gtk_string_list_new (NULL);
+    for (guint i = 0; i < PINS_APP_ORIGIN_COUNT; i++)
+        gtk_string_list_append (origins, pins_app_origin_get_label (i));
+    gtk_drop_down_set_model (self->origin_dropdown, G_LIST_MODEL (origins));
+    g_object_bind_property (self->origin_dropdown, "selected", self->app_filter,
+                            "origin", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+    g_settings_bind (settings, "origin-filter", self->app_filter,
+                     "origin", G_SETTINGS_BIND_DEFAULT);
+
+    const gchar *sort_labels[] = { _("Name"), _("Source, then name"), NULL };
+    g_autoptr (GtkStringList) sort_options = gtk_string_list_new (sort_labels);
+    gtk_drop_down_set_model (self->sort_dropdown, G_LIST_MODEL (sort_options));
+    gboolean group_by_origin = g_settings_get_boolean (settings, "group-by-origin");
+    gtk_drop_down_set_selected (self->sort_dropdown, group_by_origin ? 1 : 0);
+    g_settings_bind (settings, "group-by-origin", self->app_filter,
+                     "group-by-origin", G_SETTINGS_BIND_DEFAULT);
+    g_signal_connect_object (self->sort_dropdown, "notify::selected",
+                              G_CALLBACK (sort_dropdown_changed_cb), self, 0);
 
     g_settings_bind (settings, "show-all-apps", self->app_filter,
                      "show-all-apps", G_SETTINGS_BIND_DEFAULT);

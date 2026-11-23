@@ -2,6 +2,7 @@ pinapp_sources = [
     'main.c',
     'pins-add-key-dialog.c',
     'pins-app-filter.c',
+    'pins-app-origin.c',
     'pins-app-grid.c',
     'pins-app-icon.c',
     'pins-app-iterator.c',
@@ -19,13 +20,13 @@ pinapp_sources = [
 
 pinapp_deps = [
     dependency('gtk4'),
-    dependency('libadwaita-1', version: '>= 1.4'),
+    dependency('libadwaita-1', version: '>= 1.7'),
 ]
 
 pinapp_sources += gnome.compile_resources('pins-resources', 'pins.gresource.xml', c_name: 'pins')
 
 executable(
-    'pinapp',
+    'pins-sources',
     pinapp_sources,
     dependencies: pinapp_deps,
     install: true,

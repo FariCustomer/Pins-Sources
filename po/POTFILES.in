@@ -15,3 +15,5 @@ src/pins-desktop-file.c
 src/pins-file-view.c
 src/pins-key-row.c
 src/pins-pick-icon-popover.c
+
+src/pins-app-origin.c

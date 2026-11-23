@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
     input: 'io.github.fabrialberio.pinapp.desktop.in',
-    output: 'io.github.fabrialberio.pinapp.desktop',
+    output: 'io.github.mechamorf.PinsSources.desktop',
     type: 'desktop',
     po_dir: '../po',
     install: true,
@@ -14,7 +14,7 @@ endif
 
 appstream_file = i18n.merge_file(
     input: 'io.github.fabrialberio.pinapp.metainfo.xml.in',
-    output: 'io.github.fabrialberio.pinapp.metainfo.xml',
+    output: 'io.github.mechamorf.PinsSources.metainfo.xml',
     po_dir: '../po',
     install: true,
     install_dir: get_option('datadir') / 'metainfo',
@@ -29,6 +29,7 @@ test(
 
 install_data(
     'io.github.fabrialberio.pinapp.gschema.xml',
+    rename: ['io.github.mechamorf.PinsSources.gschema.xml'],
     install_dir: get_option('datadir') / 'glib-2.0' / 'schemas',
 )
 
@@ -43,7 +44,7 @@ service_conf = configuration_data()
 service_conf.set('bindir', get_option('prefix') / get_option('bindir'))
 configure_file(
     input: 'io.github.fabrialberio.pinapp.service.in',
-    output: 'io.github.fabrialberio.pinapp.service',
+    output: 'io.github.mechamorf.PinsSources.service',
     configuration: service_conf,
     install_dir: get_option('datadir') / 'dbus-1' / 'services',
 )

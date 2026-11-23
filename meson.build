@@ -1,7 +1,7 @@
 project(
-    'pinapp',
+    'pins-sources',
     'c',
-    version: '0.1.0',
+    version: '2.4.8-sources.1',
     meson_version: '>= 1.0.0',
     default_options: [
         'warning_level=2',
@@ -88,6 +88,7 @@ add_project_arguments(project_c_args, language: 'c')
 
 subdir('data')
 subdir('src')
+subdir('tests')
 subdir('po')
 
 gnome.post_install(

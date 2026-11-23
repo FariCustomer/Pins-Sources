@@ -31,7 +31,7 @@ gchar *
 pins_desktop_file_user_path (void)
 {
     g_autoptr (GSettings) settings
-        = g_settings_new ("io.github.fabrialberio.pinapp");
+        = g_settings_new ("io.github.mechamorf.PinsSources");
 
     return parse_filename (g_settings_get_string (settings, "user-path"));
 }
@@ -40,7 +40,7 @@ gchar *
 pins_desktop_file_autostart_path (void)
 {
     g_autoptr (GSettings) settings
-        = g_settings_new ("io.github.fabrialberio.pinapp");
+        = g_settings_new ("io.github.mechamorf.PinsSources");
 
     return parse_filename (g_settings_get_string (settings, "autostart-path"));
 }
@@ -50,7 +50,7 @@ pins_desktop_file_search_paths (void)
 {
     GStrvBuilder *builder = g_strv_builder_new ();
     g_autoptr (GSettings) settings
-        = g_settings_new ("io.github.fabrialberio.pinapp");
+        = g_settings_new ("io.github.mechamorf.PinsSources");
     g_auto (GStrv) search_paths
         = g_settings_get_strv (settings, "search-paths");
 
@@ -68,7 +68,7 @@ void
 pins_inject_icon_search_paths (void)
 {
     g_autoptr (GSettings) settings
-        = g_settings_new ("io.github.fabrialberio.pinapp");
+        = g_settings_new ("io.github.mechamorf.PinsSources");
     g_auto (GStrv) search_paths
         = g_settings_get_strv (settings, "search-paths");
     g_autoptr (GtkIconTheme) theme

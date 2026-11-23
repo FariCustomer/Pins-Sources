@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Pins
+Name=Pins Sources
 Comment=Create and edit app shortcuts
-Exec=pinapp %u
+Exec=pins-sources %u
 MimeType=application/x-desktop;
-Icon=io.github.fabrialberio.pinapp
+Icon=io.github.mechamorf.PinsSources
 Terminal=false
 Type=Application
 Categories=GTK;Utility;GNOME;

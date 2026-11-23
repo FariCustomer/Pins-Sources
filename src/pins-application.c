@@ -35,8 +35,11 @@ pins_application_new (const char *application_id, GApplicationFlags flags)
 {
     g_return_val_if_fail (application_id != NULL, NULL);
 
-    return g_object_new (PINS_TYPE_APPLICATION, "application-id",
-                         application_id, "flags", flags, NULL);
+    PinsApplication *application = g_object_new (PINS_TYPE_APPLICATION, "application-id",
+                                                 application_id, "flags", flags, NULL);
+    g_application_set_resource_base_path (G_APPLICATION (application),
+        "/io/github/fabrialberio/pinapp");
+    return application;
 }
 
 static void
@@ -90,10 +93,10 @@ pins_application_about_action (GSimpleAction *action, GVariant *parameter,
 
     // clang-format off
     adw_show_about_dialog (GTK_WIDGET (window),
-        "application-name", "Pins",
+        "application-name", "Pins Sources",
         "application-icon", g_application_get_application_id (G_APPLICATION (self)),
         "developer-name", "Fabrizio Alberio",
-        "version", "2.4.8",
+        "version", "2.4.8-sources.1",
         "developers", developers,
         "copyright", "Copyright © 2024 Fabrizio",
         "license-type", GTK_LICENSE_GPL_3_0,
